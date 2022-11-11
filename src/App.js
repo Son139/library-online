@@ -1,18 +1,35 @@
-import './App.css';
-import { Route, Routes, BrowserRouter as Router } from "react-router-dom";
-import Home from './component/home/Home';
-import Signup from './component/signup/Signup';
-import Login from './component/login/Login';
+import React, { useEffect, useState } from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+
+import Home from "./components/home/Home";
+import Login from "./components/login/Login";
+import Signup from "./components/signup/Signup";
+
+import { auth } from "./components/firebase/conflig";
+
+import "./App.css";
 
 function App() {
+  const [userName, setUserName] = useState("");
+
+  useEffect(() => {
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        setUserName(user.displayName);
+      } else setUserName("");
+    });
+  }, []);
+
   return (
-    <Router>
-      <Routes>
-        <Route element={<Login/>} path="/login"></Route>
-        <Route element={<Signup/>} path="/signup"></Route>
-        <Route element={<Home/>} path="/"></Route>
-      </Routes>
-    </Router>
+    <div className="App">
+      <Router>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/" element={<Home name={userName} />} />
+        </Routes>
+      </Router>
+    </div>
   );
 }
 
