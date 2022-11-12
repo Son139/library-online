@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
-import Home from "./components/home/Home";
-import Login from "./components/login/Login";
-import Signup from "./components/signup/Signup";
+import Home from "./pages/Home/Home";
+import Login from "./pages/Login/Login";
+import Signup from "./pages/Signup/Signup";
 
 import { auth } from "./components/firebase/conflig";
 
-import "./App.css";
 
 function App() {
   const [userName, setUserName] = useState("");

@@ -1,0 +1,73 @@
+.container
+  height: 100%
+  min-height: 100vh
+  width: 100%
+  background: #f8f8f8
+  display: flex
+  justify-content: center
+  align-items: center
+
+  .innerBox
+    min-width: 480px
+    height: fit-content
+    width: fit-content
+    background-color: #fff
+    box-shadow: rgba(99, 99, 99, 0.2) 0px 2px 8px 0px
+    padding: 67px 30px 87px
+    border-radius: 10px
+    display: flex
+    gap: 30px
+
+    .signin-image
+      width: 50%
+      overflow: hidden
+      margin-left: 110px
+      margin-right: 20px
+      margin-top: 10px
+
+      figure
+        margin-bottom: 50px
+        text-align: center
+
+        img
+          max-width: 100%
+          height: auto
+      p
+        color: #000
+
+      p span a
+        color: #1da0f2
+        letter-spacing: 1px
+        font-size: 1rem
+        text-decoration: none
+
+    .singin-form
+      margin: auto 90px auto 80px
+      width: 50%
+      overflow: hidden
+
+      .heading
+        margin-bottom: 33px
+
+      .error
+        font-weight: bold
+        font-size: 0.875rem
+        color: #ff3300
+        text-align: center
+
+      button
+        background-color: var(--primary-color)
+        color: #fff
+        font-weight: bold
+        font-size: 1rem
+        padding: 10px 16px
+        width: 100%
+        border-radius: 6px
+        transition: 100ms
+        cursor: pointer
+
+        &:disabled
+          background-color: gray !important
+
+        &:hover
+          background-color: #1673ff

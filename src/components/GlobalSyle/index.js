@@ -1,9 +1,5 @@
-import React from 'react'
-import './GlobalStyles.scss'
+import "./GlobalStyles.sass";
 
-
-export default function GlobalStyles({children}) {
-  return (
-    children
-  )
+export default function GlobalStyles({ children }) {
+    return children;
 }
