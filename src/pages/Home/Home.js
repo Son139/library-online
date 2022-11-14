@@ -1,7 +1,13 @@
-import React from "react";
+import React, { useContext } from "react";
 import { Link } from "react-router-dom";
+import { AuthContext } from "../../components/Context/AuthProvider";
 
-function Home(props) {
+function Home() {
+    const {
+        user: { displayName },
+    } = useContext(AuthContext);
+
+    
     return (
         <div>
             <div>
@@ -18,7 +24,7 @@ function Home(props) {
             <br />
             <br />
 
-            <h2>{props.name ? `Welcome - ${props.name}` : "Login please"}</h2>
+            <h2>{displayName ? `Welcome - ${displayName}` : "Login please"}</h2>
         </div>
     );
 }
