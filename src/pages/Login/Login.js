@@ -1,12 +1,14 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import {
+    signInWithEmailAndPassword,
+} from "firebase/auth";
 
 import styles from "./Login.module.sass";
 import { auth } from "../../components/firebase/conflig";
 import InputControl from "../../components/InputControl/InputControl";
 import classNames from "classnames/bind";
-import { faEnvelope, faKey, faUser } from "@fortawesome/free-solid-svg-icons";
+import { faEnvelope, faKey } from "@fortawesome/free-solid-svg-icons";
 
 const cx = classNames.bind(styles);
 
@@ -31,9 +33,9 @@ function Login() {
         signInWithEmailAndPassword(auth, values.email, values.pass)
             .then(async (res) => {
                 setSubmitButtonDisabled(false);
+                // check new user
 
                 navigate("/");
-                window.location.reload();
             })
             .catch((err) => {
                 setSubmitButtonDisabled(false);

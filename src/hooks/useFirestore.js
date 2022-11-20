@@ -2,7 +2,7 @@ import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { db } from "../components/firebase/conflig";
 
-function useFirestore(collectionName, condition) {
+function useFirestore(collectionName) {
     const [documents, setDocuments] = useState([]);
 
     useEffect(() => {
@@ -20,7 +20,7 @@ function useFirestore(collectionName, condition) {
             //     console.log({ data, snapshot, docs: snapshot.docs });
         });
         return unsubscribed;
-    }, [collectionName, condition]);
+    }, [collectionName]);
     return documents;
 }
 

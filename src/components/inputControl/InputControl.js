@@ -9,6 +9,7 @@ const cx = classNames.bind(styles);
 function InputControl(props) {
   return (
     <div className={cx('container')}>
+      {props.label && <label>{props.label}</label>}
       {props.icon && <FontAwesomeIcon icon={props.icon}/>}
       <input  {...props} />
     </div>

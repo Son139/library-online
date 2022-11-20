@@ -1,19 +1,18 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import {
+    createUserWithEmailAndPassword,
+    getAdditionalUserInfo,
+    updateProfile,
+} from "firebase/auth";
 
 import InputControl from "../../components/InputControl/InputControl";
 import { auth } from "../../components/firebase/conflig";
 
 import styles from "./Signup.module.sass";
 import classNames from "classnames/bind";
-import {
-    fa0,
-    faEnvelope,
-    faKey,
-    faKeyboard,
-    faUser,
-} from "@fortawesome/free-solid-svg-icons";
+import { faEnvelope, faKey, faUser } from "@fortawesome/free-solid-svg-icons";
+import { addDocument } from "../../components/firebase/services";
 
 const cx = classNames.bind(styles);
 
@@ -43,6 +42,16 @@ function Signup() {
                 await updateProfile(user, {
                     displayName: values.name,
                 });
+                const data = getAdditionalUserInfo(res);
+                if (data.isNewUser) {
+                    addDocument("users", {
+                        displayName: res.user.displayName,
+                        email: res.user.email,
+                        uid: res.user.uid,
+                        providerId: res.providerId,
+                    });
+                }
+
                 navigate("/login");
             })
             .catch((err) => {
