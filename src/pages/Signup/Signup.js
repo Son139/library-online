@@ -43,12 +43,13 @@ function Signup() {
                     displayName: values.name,
                 });
                 const data = getAdditionalUserInfo(res);
+                console.log(res);
+                console.log(data);
                 if (data.isNewUser) {
                     addDocument("users", {
                         displayName: res.user.displayName,
                         email: res.user.email,
                         uid: res.user.uid,
-                        providerId: res.providerId,
                     });
                 }
 

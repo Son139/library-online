@@ -1,5 +1,4 @@
 import { Button, Form, Layout, Menu, Row, Table } from "antd";
-import "antd/dist/antd.css";
 import { Content, Header } from "antd/lib/layout/layout";
 import { signOut } from "firebase/auth";
 import React, { createElement, useContext, useState } from "react";
@@ -24,13 +23,15 @@ import { AppContext } from "../../components/Context/AppProvider";
 const cx = classNames.bind(styles);
 
 function Home() {
+    const [collapsed, setCollapsed] = useState(false);
+
     const navigate = useNavigate();
     const {
         user: { displayName },
     } = useContext(AuthContext);
 
     const { books, columns } = useContext(AppContext);
-
+    console.log(books);
     const handleLogOut = () => {
         signOut(auth);
         navigate("/login");
@@ -58,8 +59,6 @@ function Home() {
             label: "Đăng Xuất",
         },
     ];
-
-    const [collapsed, setCollapsed] = useState(false);
 
     return (
         <Layout>

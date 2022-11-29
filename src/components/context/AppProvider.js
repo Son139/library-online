@@ -1,15 +1,17 @@
 import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
 import { Modal, Space } from "antd";
 import { collection, getDocs } from "firebase/firestore";
-import React, { createContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { db } from "../firebase/conflig";
 import { deleteDocument } from "../firebase/services";
+import { AuthContext } from "./AuthProvider";
 
 export const AppContext = createContext();
 export default function AppProvider({ children }) {
     const navigate = useNavigate();
 
+    const { user } = useContext(AuthContext);
     const [books, setBooks] = useState([]);
     const [bookId, setBookId] = useState("");
 
@@ -45,6 +47,7 @@ export default function AppProvider({ children }) {
             title: "Action",
             dataIndex: "action",
             key: "action",
+        
             render: (_, record) => {
                 return (
                     <Space size="middle">
@@ -59,17 +62,13 @@ export default function AppProvider({ children }) {
                     </Space>
                 );
             },
+            
         },
     ];
 
     useEffect(() => {
         getBooks();
     }, []);
-
-    // const getBooks = async () => {
-    //     const docSnap = await getAllDocuments("books");
-    //     setBooks(docSnap.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
-    // };
 
     async function getBooks() {
         const bookCol = collection(db, "books");

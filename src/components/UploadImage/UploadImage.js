@@ -1,44 +1,51 @@
-import { Upload } from "antd";
-import React from "react";
-import { useState } from "react";
-import ImgCrop from "antd-img-crop";
+import { Avatar, Button, Input, Upload } from "antd";
+import React, { useEffect, useState } from "react";
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import { storage } from "../firebase/conflig";
 
 export default function UploadImage() {
-    const [fileList, setFileList] = useState([
-        {
-            uid: "-1",
-            name: "image.png",
-            status: "done",
-            url: "https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png",
-        },
-    ]);
-    const onChange = ({ fileList: newFileList }) => {
-        setFileList(newFileList);
-    };
-    const onPreview = async (file) => {
-        let src = file.url;
-        if (!src) {
-            src = await new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file.originFileObj);
-                reader.onload = () => resolve(reader.result);
-            });
+    const [image, setImage] = useState(null);
+    const [url, setUrl] = useState(null);
+    const [sizeImage, setSizeImage] = useState(0);
+
+    const handleImageChange = (e) => {
+        if (e.target.files[0]) {
+            setImage(e.target.files[0]);
+            console.log(image);
         }
-        const image = new Image();
-        image.src = src;
-        const imgWindow = window.open(src);
-        imgWindow?.document.write(image.outerHTML);
     };
+    const uploadImg = () => {
+        if (image.name !== null) {
+            const storageRef = ref(storage, `images/${image.name}`);
+            console.log(image);
+
+            uploadBytes(storageRef, image)
+                .then(() => {
+                    getDownloadURL(storageRef)
+                        .then((url) => {
+                            setUrl(url);
+                            setSizeImage(500);
+                            console.log(url);
+                        })
+                        .catch((error) => {
+                            console.log(
+                                error.message,
+                                "error getting the image url",
+                            );
+                        });
+                    setImage(null);
+                })
+                .catch((error) => {
+                    console.log(error.message);
+                });
+        }
+    };
+
     return (
-        <ImgCrop rotate>
-            <Upload
-                action="https://www.mocky.io/v2/5cc8019d300000980a055e76"
-                listType="picture-card"
-                onChange={onChange}
-                onPreview={onPreview}
-            >
-                {fileList.length < 2 && "+ Upload"}
-            </Upload>
-        </ImgCrop>
+        <>
+            <Input type="file" onChange={handleImageChange} />
+            <Button onClick={uploadImg}>Submit</Button>
+            <Avatar shape="square" src={url} size={sizeImage} />
+        </>
     );
 }

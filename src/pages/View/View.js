@@ -1,4 +1,14 @@
-import { Button, Col, DatePicker, Form, Input, Row, Select } from "antd";
+import {
+    Button,
+    Col,
+    DatePicker,
+    Form,
+    Input,
+    Row,
+    Select,
+    Image,
+    notification,
+} from "antd";
 import TextArea from "antd/lib/input/TextArea";
 import { doc, getDoc } from "firebase/firestore";
 import React, { useContext, useEffect, useState } from "react";
@@ -6,13 +16,16 @@ import { useNavigate } from "react-router-dom";
 import { AppContext } from "../../components/Context/AppProvider";
 import { db } from "../../components/firebase/conflig";
 import { updateDocument } from "../../components/firebase/services";
-import UploadImage from "../../components/UploadImage/UploadImage";
+
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import { storage } from "../../components/firebase/conflig";
+import { Footer } from "antd/es/layout/layout";
 
 export default function View() {
-    const [inputValue, setInputValue] = useState("");
     const { bookId, setBookId } = useContext(AppContext);
     const navigate = useNavigate();
     const categoryList = ["Hài hước", "Trinh thám", "Kì bí", "Viễn tưởng"];
+    const dateFormat = "DD/MM/YYYY";
 
     const [title, setTitle] = useState("");
     const [author, setAuthor] = useState("");
@@ -21,7 +34,49 @@ export default function View() {
     const [category, setCategory] = useState("");
     const [releaseDate, setReleaseDate] = useState("");
     const [buttonName, setButtonName] = useState("Edit");
-    const [isDisabled, setIsDisabled] = useState("true");
+    const [isDisabled, setIsDisabled] = useState(true);
+    const [image, setImage] = useState(null);
+    const [url, setUrl] = useState(null);
+
+    const { books } = useContext(AppContext);
+
+    const [api, contextHolder] = notification.useNotification();
+    const openNotificationWithIcon = (type, message) => {
+        api[type]({
+            message: message,
+        });
+    };
+    const handleImageChange = (e) => {
+        if (e.target.files[0]) {
+            setImage(e.target.files[0]);
+        }
+    };
+
+    const uploadImg = () => {
+        if (image.name !== null) {
+            const storageRef = ref(storage, `images/${image.name}`);
+
+            uploadBytes(storageRef, image)
+                .then(() => {
+                    getDownloadURL(storageRef)
+                        .then((url) => {
+                            setUrl(url);
+                            console.log(url);
+                        })
+                        .catch((error) => {
+                            console.log(
+                                error.message,
+                                "error getting the image url",
+                            );
+                        });
+                    setImage(null);
+                })
+                .catch((error) => {
+                    console.log(error.message);
+                });
+        }
+    };
+
     const handleSubmit = async () => {
         const newBook = {
             title,
@@ -29,18 +84,21 @@ export default function View() {
             description,
             page,
             category,
+            releaseDate,
+            url,
         };
-        if (bookId !== undefined && bookId !== "") {
+
+        const checkBook = books.filter(
+            (book) => book.title === newBook.title.trim(),
+        );
+        console.log(checkBook);
+        if (checkBook.length === 0) {
+            openNotificationWithIcon("success", "Update sách thành công!!!");
             await updateDocument(bookId, newBook, "books");
-            // setBookId("");
-            // setMessage({ error: false, msg: "Updated successfully!" });
+        } else {
+            openNotificationWithIcon("error", "Sách đã tồn tại!!!");
+            return;
         }
-        // setTitle("");
-        // setAuthor("");
-        // setDescription("");
-        // setReleaseDate("");
-        // setPage("");
-        // setCategory("");
     };
 
     const editHandler = async () => {
@@ -52,6 +110,7 @@ export default function View() {
         setReleaseDate(docSnap.data().releaseDate);
         setPage(docSnap.data().page);
         setCategory(docSnap.data().category);
+        setUrl(docSnap.data().url);
     };
 
     useEffect(() => {
@@ -61,14 +120,7 @@ export default function View() {
         }
     }, [bookId]);
 
-    console.log(releaseDate);
-    console.log(page);
-    console.log(category);
-    const dateFormat = "DD/MM/YYYY";
-
-    const handleChange = (value) => {
-        setCategory(value);
-    };
+    // const initialValue = undefined;
     return (
         <Form
             labelCol={{
@@ -81,20 +133,34 @@ export default function View() {
                 remember: true,
             }}
             layout="vertical"
-            onFinish={handleSubmit}
+            // onFinish={handleSubmit}
+            style={{
+                margin: "100px 190px 0",
+                background: "rgb(220 220 220 / 10%)",
+                padding: "50px 0 0 0",
+                borderRadius: "10px",
+                boxShadow: "rgba(0, 0, 0, 0.24) 0px 3px 8px",
+            }}
         >
-            <Row>
-                <Col span={12}>
-                    <Row>
+            <Row
+                style={{
+                    display: "flex",
+                    padding: "0 0 50px 140px",
+                }}
+            >
+                <Col span={14}>
+                    <Row justify="center">
                         <Col span={12}>
                             <Form.Item
                                 label="Tiêu Đề: "
                                 rules={[
-                                    { required: true, message: "Điền tiêu đề" },
+                                    {
+                                        required: true,
+                                        message: "Điền tiêu đề",
+                                    },
                                 ]}
                             >
                                 <Input
-                                    placeholder="Tiêu Đề"
                                     onChange={(e) => setTitle(e.target.value)}
                                     value={`${title}`}
                                     disabled={isDisabled}
@@ -105,11 +171,14 @@ export default function View() {
                             <Form.Item
                                 label="Tác Giả: "
                                 rules={[
-                                    { required: true, message: "Điền tác giả" },
+                                    {
+                                        required: true,
+                                        message: "Điền tác giả",
+                                    },
                                 ]}
+                                hasFeedback
                             >
                                 <Input
-                                    placeholder="Tác Giả"
                                     type="text"
                                     onChange={(e) => setAuthor(e.target.value)}
                                     value={`${author}`}
@@ -125,7 +194,6 @@ export default function View() {
                         label="Mô tả về sách: "
                     >
                         <TextArea
-                            placeholder="Mô tả về sách"
                             rows={6}
                             onChange={(e) => setDescription(e.target.value)}
                             value={`${description}`}
@@ -144,6 +212,7 @@ export default function View() {
                                         message: "Điền ngày phát hành",
                                     },
                                 ]}
+                                // initialValue={undefined}
                             >
                                 <DatePicker
                                     style={{ width: "100%" }}
@@ -151,6 +220,12 @@ export default function View() {
                                         setReleaseDate(dateString)
                                     }
                                     format={dateFormat}
+                                    // value={moment(
+                                    //     releaseDate
+                                    //         ? `${releaseDate}`
+                                    //         : "20/11/2022",
+                                    //     dateFormat,
+                                    // )}
                                     // value={`${releaseDate}`}
                                     disabled={isDisabled}
                                 />
@@ -164,14 +239,16 @@ export default function View() {
                                             label: `${categoryItem}`,
                                         }),
                                     )}
-                                    onChange={handleChange}
+                                    onChange={(value) => {
+                                        setCategory(value);
+                                    }}
+                                    disabled={isDisabled}
                                 />
                             </Form.Item>
                         </Col>
                         <Col span={12}>
                             <Form.Item label="Số Trang: ">
                                 <Input
-                                    placeholder="Số trang"
                                     type="number"
                                     onChange={(e) => setPage(e.target.value)}
                                     value={`${page}`}
@@ -180,35 +257,81 @@ export default function View() {
                             </Form.Item>
                         </Col>
                     </Row>
+                    <Footer style={{ width: "100%", paddingTop: "10px" }}>
+                        {contextHolder}
+                        <Button
+                            style={{ width: "80px" }}
+                            type="primary"
+                            htmlType="submit"
+                            onClick={() => {
+                                if (buttonName === "Edit") {
+                                    setButtonName("Save");
+                                    setIsDisabled(false);
+                                } else {
+                                    handleSubmit();
+                                    setButtonName("Edit");
+                                    setIsDisabled(true);
+                                }
+                            }}
+                            size="large"
+                        >
+                            {buttonName}
+                        </Button>
+                        {/* <Button
+                            style={{ width: "80px", marginLeft: 20 }}
+                            type="primary"
+                            htmlType="submit"
+                            onClick={() => {
+                                if (buttonName === "Edit") {
+                                    setButtonName("Save");
+                                    setIsDisabled(false);
+                                } else {
+                                    setButtonName("Edit");
+                                    setIsDisabled(true);
+                                }
+                            }}
+                            size="large"
+                        >
+                            {buttonName}
+                        </Button> */}
+                        <Button
+                            style={{ width: "80px", marginLeft: 20 }}
+                            type="primary"
+                            size="large"
+                            onClick={() => {
+                                navigate("/");
+                                window.location.reload(false);
+                            }}
+                        >
+                            Back
+                        </Button>
+                    </Footer>
                 </Col>
-                <Col span={12}>
+                <Col span={10}>
                     <Form.Item>
-                        <UploadImage />
+                        <div
+                            style={{
+                                display: "flex",
+                                alignItems: "center",
+                            }}
+                        >
+                            <Input
+                                type="file"
+                                onChange={handleImageChange}
+                                disabled={isDisabled}
+                            />
+                            <Button onClick={uploadImg} disabled={isDisabled}>
+                                Submit
+                            </Button>
+                        </div>
+                        <Image
+                            src={url}
+                            width="100%"
+                            style={{ marginTop: "20px" }}
+                        />
                     </Form.Item>
                 </Col>
             </Row>
-            <Form.Item
-                wrapperCol={{
-                    offset: 8,
-                    span: 16,
-                }}
-            >
-                <Button
-                    type="primary"
-                    htmlType="submit"
-                    onClick={() => {
-                        setButtonName("Save");
-                        setIsDisabled(false);
-                        if (buttonName == "Save") {
-                            handleSubmit();
-                            navigate("/");
-                            window.location.reload(false);
-                        }
-                    }}
-                >
-                    {buttonName}
-                </Button>
-            </Form.Item>
         </Form>
     );
 }

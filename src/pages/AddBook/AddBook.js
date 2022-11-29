@@ -1,27 +1,84 @@
-import { Button, Col, DatePicker, Form, Input, Row, Select } from "antd";
+import {
+    Button,
+    Col,
+    DatePicker,
+    Form,
+    Input,
+    Row,
+    Select,
+    Image,
+    notification,
+} from "antd";
 import TextArea from "antd/lib/input/TextArea";
 import React, { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { AppContext } from "../../components/Context/AppProvider";
 import { addDocument } from "../../components/firebase/services";
-import UploadImage from "../../components/UploadImage/UploadImage";
 
-export default function AddBook({ id, setBookId }) {
-    const [inputValue, setInputValue] = useState("");
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import { storage } from "../../components/firebase/conflig";
+import moment from "moment";
+import { Footer } from "antd/es/layout/layout";
+import { AppContext } from "../../components/Context/AppProvider";
+
+export default function AddBook() {
+    const dateFormat = "DD/MM/YYYY";
+    const categoryList = ["Hài hước", "Trinh thám", "Kì bí", "Viễn tưởng"];
+    const [form] = Form.useForm();
+
     const navigate = useNavigate();
-
     const [title, setTitle] = useState("");
     const [author, setAuthor] = useState("");
     const [description, setDescription] = useState("");
     const [page, setPage] = useState("");
     const [category, setCategory] = useState("");
     const [releaseDate, setReleaseDate] = useState("");
+    const [image, setImage] = useState(null);
+    const [url, setUrl] = useState(null);
+    const [sizeImage, setSizeImage] = useState(0);
 
     const { books } = useContext(AppContext);
-    console.log(books);
 
-    const categoryList = ["Hài hước", "Trinh thám", "Kì bí", "Viễn tưởng"];
-    const handleSubmit = async () => {
+    const [api, contextHolder] = notification.useNotification();
+    const openNotificationWithIcon = (type, message) => {
+        api[type]({
+            message: message,
+        });
+    };
+
+    const handleImageChange = (e) => {
+        if (e.target.files[0]) {
+            setImage(e.target.files[0]);
+            console.log(image);
+        }
+    };
+    const uploadImg = () => {
+        if (image.name !== null) {
+            const storageRef = ref(storage, `images/${image.name}`);
+            console.log(image);
+
+            uploadBytes(storageRef, image)
+                .then(() => {
+                    getDownloadURL(storageRef)
+                        .then((url) => {
+                            setUrl(url);
+                            setSizeImage(500);
+                            console.log(url);
+                        })
+                        .catch((error) => {
+                            console.log(
+                                error.message,
+                                "error getting the image url",
+                            );
+                        });
+                    setImage(null);
+                })
+                .catch((error) => {
+                    console.log(error.message);
+                });
+        }
+    };
+
+    const handleSubmit = async (res) => {
         const newBook = {
             title,
             author,
@@ -29,10 +86,15 @@ export default function AddBook({ id, setBookId }) {
             page,
             releaseDate,
             category,
+            url,
         };
 
+        // const data = getAdditionalUserInfo(res);
+        // console.log(data);
+        // console.log(res.exists());
         await addDocument("books", newBook);
         // setMessage({ error: false, msg: "New Book added successfully!" });
+        openNotificationWithIcon("success", "Thêm sách thành công!!!");
 
         setTitle("");
         setAuthor("");
@@ -40,15 +102,12 @@ export default function AddBook({ id, setBookId }) {
         setReleaseDate("");
         setPage("");
         setCategory("");
+        setUrl(null);
     };
 
-    const handleChange = (value) => {
-        setCategory(value);
-    };
-
-    const dateFormat = "DD/MM/YYYY";
     return (
         <Form
+            form={form}
             labelCol={{
                 span: 8,
             }}
@@ -60,21 +119,35 @@ export default function AddBook({ id, setBookId }) {
             }}
             layout="vertical"
             onFinish={handleSubmit}
+            style={{
+                margin: "100px 190px 0",
+                background: "rgb(220 220 220 / 10%)",
+                padding: "50px 0 0 0",
+                borderRadius: "10px",
+                boxShadow: "rgba(0, 0, 0, 0.24) 0px 3px 8px",
+            }}
         >
-            <Row>
-                <Col span={12}>
-                    <Row>
+            <Row
+                style={{
+                    display: "flex",
+                    padding: "0 0 50px 140px",
+                }}
+            >
+                <Col span={14}>
+                    <Row justify="center">
                         <Col span={12}>
                             <Form.Item
                                 name="title"
                                 label="Tiêu Đề: "
+                                hasFeedback
                                 rules={[
-                                    { required: true, message: "Điền tiêu đề" },
+                                    {
+                                        required: true,
+                                        message: "Điền tiêu đề",
+                                    },
                                 ]}
                             >
                                 <Input
-                                    placeholder="Tiêu Đề"
-                                    type="text"
                                     onChange={(e) => setTitle(e.target.value)}
                                 />
                             </Form.Item>
@@ -84,11 +157,14 @@ export default function AddBook({ id, setBookId }) {
                                 name="author"
                                 label="Tác Giả: "
                                 rules={[
-                                    { required: true, message: "Điền tác giả" },
+                                    {
+                                        required: true,
+                                        message: "Điền tác giả",
+                                    },
                                 ]}
+                                hasFeedback
                             >
                                 <Input
-                                    placeholder="Tác Giả"
                                     type="text"
                                     onChange={(e) => setAuthor(e.target.value)}
                                 />
@@ -99,11 +175,10 @@ export default function AddBook({ id, setBookId }) {
                         wrapperCol={{
                             span: 20,
                         }}
-                        name="description"
                         label="Mô tả về sách: "
                     >
                         <TextArea
-                            placeholder="Mô tả về sách"
+                            name="description"
                             rows={6}
                             onChange={(e) => setDescription(e.target.value)}
                         />
@@ -121,6 +196,7 @@ export default function AddBook({ id, setBookId }) {
                                         message: "Điền ngày phát hành",
                                     },
                                 ]}
+                                // initialValue={undefined}
                             >
                                 <DatePicker
                                     style={{ width: "100%" }}
@@ -130,58 +206,81 @@ export default function AddBook({ id, setBookId }) {
                                     format={dateFormat}
                                 />
                             </Form.Item>
+                            <Form.Item
+                                name="category"
+                                label="Thể loại"
+                                hasFeedback
+                            >
+                                <Select
+                                    options={categoryList.map(
+                                        (categoryItem) => ({
+                                            value: `${categoryItem}`,
+                                            label: `${categoryItem}`,
+                                        }),
+                                    )}
+                                    onChange={(value) => {
+                                        setCategory(value);
+                                    }}
+                                />
+                            </Form.Item>
                         </Col>
                         <Col span={12}>
-                            <Form.Item name="page" label="Số Trang: ">
+                            <Form.Item
+                                hasFeedback
+                                name="page"
+                                label="Số Trang: "
+                            >
                                 <Input
-                                    placeholder="Số trang"
                                     type="number"
                                     onChange={(e) => setPage(e.target.value)}
                                 />
                             </Form.Item>
                         </Col>
                     </Row>
-                    <Col span={12}>
-                        <Form.Item
-                            label="Thể Loại: "
-                            hasFeedback
-                            name="category"
-                        >
-                            <Select
-                                defaultValue={`${categoryList[0]}`}
-                                options={categoryList.map((categoryItem) => ({
-                                    value: `${categoryItem}`,
-                                    label: `${categoryItem}`,
-                                }))}
-                                onChange={handleChange}
-                            />
-                        </Form.Item>
-                    </Col>
+                    <Footer style={{ width: "100%", paddingTop: "10px" }}>
+                        {contextHolder}
+                        <Row>
+                            <Button
+                                style={{ width: "80px" }}
+                                type="primary"
+                                htmlType="submit"
+                                size="large"
+                            >
+                                Save
+                            </Button>
+                            <Button
+                                style={{ width: "80px", marginLeft: 20 }}
+                                type="primary"
+                                size="large"
+                                onClick={() => {
+                                    navigate("/");
+                                    window.location.reload(false);
+                                }}
+                            >
+                                Back
+                            </Button>
+                        </Row>
+                    </Footer>
                 </Col>
-                <Col span={12}>
+                <Col span={10}>
                     <Form.Item>
-                        <UploadImage />
+                        <div
+                            style={{
+                                display: "flex",
+                                alignItems: "center",
+                            }}
+                        >
+                            <Input type="file" onChange={handleImageChange} />
+                            <Button onClick={uploadImg}>Submit</Button>
+                        </div>
+                        <Image
+                            src={url}
+                            width="100%"
+                            style={{ marginTop: "20px" }}
+                        />
                     </Form.Item>
                 </Col>
             </Row>
-            <Form.Item
-                wrapperCol={{
-                    offset: 8,
-                    span: 16,
-                }}
-            >
-                <Button
-                    type="primary"
-                    onClick={() => {
-                        // handleSubmit();
-                        // navigate("/");
-                        // window.location.reload(false);
-                    }}
-                    htmlType="submit"
-                >
-                    Submit
-                </Button>
-            </Form.Item>
         </Form>
     );
 }
