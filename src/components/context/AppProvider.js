@@ -1,11 +1,23 @@
-import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
-import { Modal, Space } from "antd";
-import { collection, getDocs } from "firebase/firestore";
-import React, { createContext, useContext, useEffect, useState } from "react";
+import {
+    DeleteOutlined,
+    EditOutlined,
+    SearchOutlined,
+} from "@ant-design/icons";
+import { Button, Input, Modal, Space } from "antd";
+import { collection, getDocs, onSnapshot } from "firebase/firestore";
+import React, {
+    createContext,
+    useContext,
+    useEffect,
+    useRef,
+    useState,
+} from "react";
+import moment from "moment";
 import { useNavigate } from "react-router-dom";
 import { db } from "../firebase/conflig";
 import { deleteDocument } from "../firebase/services";
 import { AuthContext } from "./AuthProvider";
+import Highlighter from "react-highlight-words";
 
 export const AppContext = createContext();
 export default function AppProvider({ children }) {
@@ -14,7 +26,11 @@ export default function AppProvider({ children }) {
     const { user } = useContext(AuthContext);
     const [books, setBooks] = useState([]);
     const [bookId, setBookId] = useState("");
+    const [searchText, setSearchText] = useState("");
+    const [searchedColumn, setSearchedColumn] = useState("");
+    const searchInput = useRef(null);
 
+    // Modal Handle Delete Book
     const handleDelete = (record) => {
         Modal.confirm({
             title: "Bạn có chắc chắn muốn xóa!!!",
@@ -27,59 +43,184 @@ export default function AppProvider({ children }) {
         });
     };
 
+    // Handle view book path
     const handleView = (record) => {
         // getBookId(record.id);
         setBookId(record.id);
         navigate(`/view/${record.id}`);
     };
 
+    //Handle search fields
+    const handleSearch = (selectedKeys, confirm, dataIndex) => {
+        confirm();
+        setSearchText(selectedKeys[0]);
+        setSearchedColumn(dataIndex);
+    };
+
+    const handleReset = (clearFilters) => {
+        clearFilters();
+        setSearchText("");
+    };
+
+    const getColumnSearchProps = (dataIndex) => ({
+        filterDropdown: ({
+            setSelectedKeys,
+            selectedKeys,
+            confirm,
+            clearFilters,
+            close,
+        }) => (
+            <div
+                style={{
+                    padding: 8,
+                }}
+                onKeyDown={(e) => e.stopPropagation()}
+            >
+                <Input
+                    ref={searchInput}
+                    placeholder={`Search ${dataIndex}`}
+                    value={selectedKeys[0]}
+                    onChange={(e) =>
+                        setSelectedKeys(e.target.value ? [e.target.value] : [])
+                    }
+                    onPressEnter={() =>
+                        handleSearch(selectedKeys, confirm, dataIndex)
+                    }
+                    style={{
+                        marginBottom: 8,
+                        display: "block",
+                    }}
+                />
+                <Space>
+                    <Button
+                        type="primary"
+                        onClick={() =>
+                            handleSearch(selectedKeys, confirm, dataIndex)
+                        }
+                        icon={<SearchOutlined />}
+                        size="small"
+                        style={{
+                            width: 90,
+                        }}
+                    >
+                        Search
+                    </Button>
+                    <Button
+                        onClick={() =>
+                            clearFilters && handleReset(clearFilters)
+                        }
+                        size="small"
+                        style={{
+                            width: 90,
+                        }}
+                    >
+                        Reset
+                    </Button>
+                </Space>
+            </div>
+        ),
+        filterIcon: (filtered) => (
+            <SearchOutlined
+                style={{
+                    color: filtered ? "#1890ff" : undefined,
+                }}
+            />
+        ),
+        onFilter: (value, record) =>
+            record[dataIndex]
+                .toString()
+                .toLowerCase()
+                .includes(value.toLowerCase()),
+        onFilterDropdownOpenChange: (visible) => {
+            if (visible) {
+                setTimeout(() => searchInput.current?.select(), 100);
+            }
+        },
+        render: (text) =>
+            searchedColumn === dataIndex ? (
+                <Highlighter
+                    highlightStyle={{
+                        backgroundColor: "#ffc069",
+                        padding: 0,
+                    }}
+                    searchWords={[searchText]}
+                    autoEscape
+                    textToHighlight={text ? text.toString() : ""}
+                />
+            ) : (
+                text
+            ),
+    });
+
     const columns = [
-        { title: "Tiêu Đề", dataIndex: "title", key: "title" },
-        { title: "Tác Giả", dataIndex: "author", key: "author" },
-        { title: "Thể Loại", dataIndex: "category", key: "category" },
+        {
+            title: "Tiêu Đề",
+            dataIndex: "title",
+            key: "title",
+            ...getColumnSearchProps("title"),
+        },
+        {
+            title: "Tác Giả",
+            dataIndex: "author",
+            key: "author",
+            ...getColumnSearchProps("author"),
+        },
+        {
+            title: "Thể Loại",
+            dataIndex: "category",
+            key: "category",
+            ...getColumnSearchProps("category"),
+        },
         {
             title: "Ngày Phát Hành",
             dataIndex: "releaseDate",
             key: "releaseDate",
         },
-        { title: "Số Trang", dataIndex: "page", key: "page" },
+        {
+            title: "Số Trang",
+            dataIndex: "page",
+            key: "page",
+            sorter: (a, b) => a.page - b.page,
+        },
         {
             title: "Action",
             dataIndex: "action",
             key: "action",
-        
+
             render: (_, record) => {
-                return (
-                    <Space size="middle">
-                        <EditOutlined
-                            style={{ color: "black" }}
-                            onClick={() => handleView(record)}
-                        />
-                        <DeleteOutlined
-                            style={{ color: "red" }}
-                            onClick={(e) => handleDelete(record)}
-                        />
-                    </Space>
-                );
+                if (user.uid)
+                    return (
+                        <Space size="middle">
+                            <EditOutlined
+                                style={{ color: "black" }}
+                                onClick={() => handleView(record)}
+                            />
+                            <DeleteOutlined
+                                style={{ color: "red" }}
+                                onClick={(e) => handleDelete(record)}
+                            />
+                        </Space>
+                    );
             },
-            
         },
     ];
 
     useEffect(() => {
         getBooks();
-    }, []);
+    }, [books]);
 
-    async function getBooks() {
+    function getBooks() {
         const bookCol = collection(db, "books");
-        const bookSnapshot = await getDocs(bookCol);
-        setBooks(
-            bookSnapshot.docs.map((doc) => ({
+        // const bookSnapshot = await getDocs(bookCol);
+        const bookSnapshot = onSnapshot(bookCol, (snapshot) => {
+            const documents = snapshot.docs.map((doc) => ({
                 ...doc.data(),
                 id: doc.id,
                 key: doc.id,
-            })),
-        );
+            }));
+
+            setBooks(documents);
+        });
     }
     return (
         <div>

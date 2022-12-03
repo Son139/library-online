@@ -300,7 +300,6 @@ export default function View() {
                             size="large"
                             onClick={() => {
                                 navigate("/");
-                                window.location.reload(false);
                             }}
                         >
                             Back
@@ -326,7 +325,7 @@ export default function View() {
                         </div>
                         <Image
                             src={url}
-                            width="100%"
+                            width="80%"
                             style={{ marginTop: "20px" }}
                         />
                     </Form.Item>

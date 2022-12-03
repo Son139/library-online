@@ -24,6 +24,13 @@ const cx = classNames.bind(styles);
 
 function Home() {
     const [collapsed, setCollapsed] = useState(false);
+    const items = [
+        {
+            key: "/login",
+            icon: <LoginOutlined />,
+            label: "Đăng Nhập",
+        },
+    ];
 
     const navigate = useNavigate();
     const {
@@ -31,34 +38,34 @@ function Home() {
     } = useContext(AuthContext);
 
     const { books, columns } = useContext(AppContext);
-    console.log(books);
     const handleLogOut = () => {
         signOut(auth);
-        navigate("/login");
+        items.shift({
+            key: "user",
+            icon: <UserOutlined />,
+            label: `${displayName}`,
+        });
     };
 
-    const items = [
-        {
-            key: "1",
-            icon: <UserOutlined />,
-            label: "Sơn",
-        },
-        {
+    if (displayName) {
+        items.unshift(
+            {
+                key: "user",
+                icon: <UserOutlined />,
+                label: `${displayName}`,
+            },
+            {
+                key: "/signout",
+                icon: <LogoutOutlined />,
+                label: "Đăng Xuất",
+            },
+        );
+        items.pop({
             key: "/login",
             icon: <LoginOutlined />,
             label: "Đăng Nhập",
-        },
-        {
-            key: "/signup",
-            icon: <LoginOutlined />,
-            label: "Đăng Ký",
-        },
-        {
-            key: "/signout",
-            icon: <LogoutOutlined />,
-            label: "Đăng Xuất",
-        },
-    ];
+        });
+    }
 
     return (
         <Layout>
@@ -69,6 +76,9 @@ function Home() {
                         onClick={({ key }) => {
                             if (key === "/signout") {
                                 handleLogOut();
+                                setTimeout(() => {
+                                    window.location.reload();
+                                }, 500);
                             } else {
                                 navigate(key);
                             }
@@ -131,6 +141,7 @@ function Home() {
                         }}
                     >
                         <Table
+                            pagination={{ pageSize: 8 }}
                             dataSource={books}
                             bordered
                             columns={columns}

@@ -10,7 +10,7 @@ import {
     notification,
 } from "antd";
 import TextArea from "antd/lib/input/TextArea";
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { addDocument } from "../../components/firebase/services";
 
@@ -89,20 +89,21 @@ export default function AddBook() {
             url,
         };
 
-        // const data = getAdditionalUserInfo(res);
-        // console.log(data);
-        // console.log(res.exists());
-        await addDocument("books", newBook);
-        // setMessage({ error: false, msg: "New Book added successfully!" });
-        openNotificationWithIcon("success", "Thêm sách thành công!!!");
+        const checkBook = books.find(
+            (book) => book.title === newBook.title.trim(),
+        );
 
-        setTitle("");
-        setAuthor("");
-        setDescription("");
-        setReleaseDate("");
-        setPage("");
-        setCategory("");
-        setUrl(null);
+        if (checkBook) {
+            openNotificationWithIcon("error", "Sách đã tồn tại!!!");
+            return;
+        } else {
+            await addDocument("books", newBook);
+            openNotificationWithIcon("success", "Thêm sách thành công!!!");
+            // setTimeout(() => {
+            //     window.location.reload(true);
+            // }, 500);
+        }
+        console.log(books);
     };
 
     return (
@@ -254,7 +255,6 @@ export default function AddBook() {
                                 size="large"
                                 onClick={() => {
                                     navigate("/");
-                                    window.location.reload(false);
                                 }}
                             >
                                 Back
@@ -275,7 +275,7 @@ export default function AddBook() {
                         </div>
                         <Image
                             src={url}
-                            width="100%"
+                            width="80%"
                             style={{ marginTop: "20px" }}
                         />
                     </Form.Item>
