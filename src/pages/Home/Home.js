@@ -141,7 +141,7 @@ function Home() {
                         }}
                     >
                         <Table
-                            pagination={{ pageSize: 8 }}
+                            pagination={{ pageSize: 7 }}
                             dataSource={books}
                             bordered
                             columns={columns}
