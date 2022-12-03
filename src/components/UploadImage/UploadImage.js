@@ -1,5 +1,5 @@
 import { Avatar, Button, Input, Upload } from "antd";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { storage } from "../firebase/conflig";
 
@@ -11,13 +11,11 @@ export default function UploadImage() {
     const handleImageChange = (e) => {
         if (e.target.files[0]) {
             setImage(e.target.files[0]);
-            console.log(image);
         }
     };
     const uploadImg = () => {
         if (image.name !== null) {
             const storageRef = ref(storage, `images/${image.name}`);
-            console.log(image);
 
             uploadBytes(storageRef, image)
                 .then(() => {
@@ -25,7 +23,6 @@ export default function UploadImage() {
                         .then((url) => {
                             setUrl(url);
                             setSizeImage(500);
-                            console.log(url);
                         })
                         .catch((error) => {
                             console.log(

@@ -1,7 +1,7 @@
 import { Button, Form, Layout, Menu, Row, Table } from "antd";
 import { Content, Header } from "antd/lib/layout/layout";
 import { signOut } from "firebase/auth";
-import React, { createElement, useContext, useState } from "react";
+import React, { createElement, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../components/Context/AuthProvider";
 import { auth } from "../../components/firebase/conflig";
@@ -21,9 +21,12 @@ import Sider from "antd/lib/layout/Sider";
 import { AppContext } from "../../components/Context/AppProvider";
 
 const cx = classNames.bind(styles);
-
 function Home() {
+    const {
+        user: { displayName },
+    } = useContext(AuthContext);
     const [collapsed, setCollapsed] = useState(false);
+    const [isDisabled, setIsDisabled] = useState(true);
     const items = [
         {
             key: "/login",
@@ -33,9 +36,6 @@ function Home() {
     ];
 
     const navigate = useNavigate();
-    const {
-        user: { displayName },
-    } = useContext(AuthContext);
 
     const { books, columns } = useContext(AppContext);
     const handleLogOut = () => {
@@ -46,6 +46,9 @@ function Home() {
             label: `${displayName}`,
         });
     };
+    useEffect(() => {
+        if (displayName) setIsDisabled(false);
+    }, [displayName]);
 
     if (displayName) {
         items.unshift(
@@ -127,6 +130,7 @@ function Home() {
                                     padding: "12px 24px 36px 24px",
                                     borderRadius: "6px",
                                 }}
+                                disabled={isDisabled}
                             >
                                 Thêm Sách
                             </Button>

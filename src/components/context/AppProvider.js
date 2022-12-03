@@ -4,7 +4,7 @@ import {
     SearchOutlined,
 } from "@ant-design/icons";
 import { Button, Input, Modal, Space } from "antd";
-import { collection, getDocs, onSnapshot } from "firebase/firestore";
+import { collection, onSnapshot } from "firebase/firestore";
 import React, {
     createContext,
     useContext,
@@ -12,7 +12,6 @@ import React, {
     useRef,
     useState,
 } from "react";
-import moment from "moment";
 import { useNavigate } from "react-router-dom";
 import { db } from "../firebase/conflig";
 import { deleteDocument } from "../firebase/services";
@@ -207,12 +206,12 @@ export default function AppProvider({ children }) {
 
     useEffect(() => {
         getBooks();
-    }, [books]);
+    }, []);
 
     function getBooks() {
         const bookCol = collection(db, "books");
         // const bookSnapshot = await getDocs(bookCol);
-        const bookSnapshot = onSnapshot(bookCol, (snapshot) => {
+        onSnapshot(bookCol, (snapshot) => {
             const documents = snapshot.docs.map((doc) => ({
                 ...doc.data(),
                 id: doc.id,

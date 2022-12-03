@@ -91,7 +91,6 @@ export default function View() {
         const checkBook = books.filter(
             (book) => book.title === newBook.title.trim(),
         );
-        console.log(checkBook);
         if (checkBook.length === 0) {
             openNotificationWithIcon("success", "Update sách thành công!!!");
             await updateDocument(bookId, newBook, "books");
@@ -114,7 +113,6 @@ export default function View() {
     };
 
     useEffect(() => {
-        console.log("The id here is : ", bookId);
         if (bookId !== undefined && bookId !== "") {
             editHandler();
         }

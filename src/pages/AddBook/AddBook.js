@@ -48,13 +48,11 @@ export default function AddBook() {
     const handleImageChange = (e) => {
         if (e.target.files[0]) {
             setImage(e.target.files[0]);
-            console.log(image);
         }
     };
     const uploadImg = () => {
         if (image.name !== null) {
             const storageRef = ref(storage, `images/${image.name}`);
-            console.log(image);
 
             uploadBytes(storageRef, image)
                 .then(() => {
@@ -99,11 +97,7 @@ export default function AddBook() {
         } else {
             await addDocument("books", newBook);
             openNotificationWithIcon("success", "Thêm sách thành công!!!");
-            // setTimeout(() => {
-            //     window.location.reload(true);
-            // }, 500);
         }
-        console.log(books);
     };
 
     return (
