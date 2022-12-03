@@ -121,7 +121,7 @@ export default function AddBook() {
             layout="vertical"
             onFinish={handleSubmit}
             style={{
-                margin: "100px 190px 0",
+                margin: "50px 190px 0",
                 background: "rgb(220 220 220 / 10%)",
                 padding: "50px 0 0 0",
                 borderRadius: "10px",
@@ -131,7 +131,7 @@ export default function AddBook() {
             <Row
                 style={{
                     display: "flex",
-                    padding: "0 0 50px 140px",
+                    padding: "0 0 50px 100px",
                 }}
             >
                 <Col span={14}>
