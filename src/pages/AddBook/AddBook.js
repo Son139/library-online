@@ -34,6 +34,7 @@ export default function AddBook() {
     const [releaseDate, setReleaseDate] = useState("");
     const [image, setImage] = useState(null);
     const [url, setUrl] = useState(null);
+    const [imageName, setImageName] = useState(null);
     const [sizeImage, setSizeImage] = useState(0);
 
     const { books } = useContext(AppContext);
@@ -53,7 +54,7 @@ export default function AddBook() {
     const uploadImg = () => {
         if (image.name !== null) {
             const storageRef = ref(storage, `images/${image.name}`);
-
+            setImageName(image.name);
             uploadBytes(storageRef, image)
                 .then(() => {
                     getDownloadURL(storageRef)
@@ -85,11 +86,15 @@ export default function AddBook() {
             releaseDate,
             category,
             url,
+            imageName,
         };
 
-        const checkBook = books.find(
-            (book) => book.title === newBook.title.trim(),
-        );
+        const checkBook = books.find((book) => {
+            return (
+                book.title === newBook.title.trim() &&
+                book.author === newBook.author.trim()
+            );
+        });
 
         if (checkBook) {
             openNotificationWithIcon("error", "Sách đã tồn tại!!!");
@@ -115,7 +120,7 @@ export default function AddBook() {
             layout="vertical"
             onFinish={handleSubmit}
             style={{
-                margin: "50px 190px 0",
+                margin: "50px 130px 0",
                 background: "rgb(220 220 220 / 10%)",
                 padding: "50px 0 0 0",
                 borderRadius: "10px",

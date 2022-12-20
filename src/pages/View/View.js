@@ -20,6 +20,7 @@ import { updateDocument } from "../../components/firebase/services";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { storage } from "../../components/firebase/conflig";
 import { Footer } from "antd/es/layout/layout";
+import moment from "moment";
 
 export default function View() {
     const { bookId, setBookId } = useContext(AppContext);
@@ -37,6 +38,7 @@ export default function View() {
     const [isDisabled, setIsDisabled] = useState(true);
     const [image, setImage] = useState(null);
     const [url, setUrl] = useState(null);
+    const [imageName, setImageName] = useState(null);
 
     const { books } = useContext(AppContext);
 
@@ -55,7 +57,7 @@ export default function View() {
     const uploadImg = () => {
         if (image.name !== null) {
             const storageRef = ref(storage, `images/${image.name}`);
-
+            setImageName(image.name);
             uploadBytes(storageRef, image)
                 .then(() => {
                     getDownloadURL(storageRef)
@@ -86,14 +88,32 @@ export default function View() {
             category,
             releaseDate,
             url,
+            imageName,
         };
 
-        const checkBook = books.filter(
-            (book) => book.title === newBook.title.trim(),
-        );
-        if (checkBook.length === 0) {
+        const checkBook = books.filter((book) => {
+            return (
+                book.title === newBook.title.trim() &&
+                book.author === newBook.author.trim() &&
+                book.description === newBook.description.trim() &&
+                book.page === newBook.page.trim() &&
+                book.category === newBook.category.trim() &&
+                book.releaseDate === newBook.releaseDate.trim() &&
+                book.url === newBook.url &&
+                book.imageName === newBook.imageName
+            );
+        });
+        if (
+            newBook.title === "" ||
+            newBook.author === "" ||
+            newBook.releaseDate === ""
+        ) {
+            openNotificationWithIcon("error", "Điền thiếu thông tin sách");
+            return;
+        } else if (checkBook.length === 0) {
             openNotificationWithIcon("success", "Update sách thành công!!!");
             await updateDocument(bookId, newBook, "books");
+            return;
         } else {
             openNotificationWithIcon("error", "Sách đã tồn tại!!!");
             return;
@@ -113,12 +133,11 @@ export default function View() {
     };
 
     useEffect(() => {
-        if (bookId !== undefined && bookId !== "") {
-            editHandler();
-        }
-    }, [bookId]);
+        // if (bookId !== undefined && bookId !== "") {
+        editHandler();
+        // }
+    }, []);
 
-    // const initialValue = undefined;
     return (
         <Form
             labelCol={{
@@ -149,15 +168,7 @@ export default function View() {
                 <Col span={14}>
                     <Row justify="center">
                         <Col span={12}>
-                            <Form.Item
-                                label="Tiêu Đề: "
-                                rules={[
-                                    {
-                                        required: true,
-                                        message: "Điền tiêu đề",
-                                    },
-                                ]}
-                            >
+                            <Form.Item label="Tiêu Đề: ">
                                 <Input
                                     onChange={(e) => setTitle(e.target.value)}
                                     value={`${title}`}
@@ -166,16 +177,7 @@ export default function View() {
                             </Form.Item>
                         </Col>
                         <Col span={12}>
-                            <Form.Item
-                                label="Tác Giả: "
-                                rules={[
-                                    {
-                                        required: true,
-                                        message: "Điền tác giả",
-                                    },
-                                ]}
-                                hasFeedback
-                            >
+                            <Form.Item label="Tác Giả: " hasFeedback>
                                 <Input
                                     type="text"
                                     onChange={(e) => setAuthor(e.target.value)}
@@ -204,12 +206,6 @@ export default function View() {
                             <Form.Item
                                 label="Ngày phát hành: "
                                 hasFeedback
-                                rules={[
-                                    {
-                                        required: true,
-                                        message: "Điền ngày phát hành",
-                                    },
-                                ]}
                                 // initialValue={undefined}
                             >
                                 <DatePicker
@@ -218,13 +214,12 @@ export default function View() {
                                         setReleaseDate(dateString)
                                     }
                                     format={dateFormat}
-                                    // value={moment(
-                                    //     releaseDate
-                                    //         ? `${releaseDate}`
-                                    //         : "20/11/2022",
-                                    //     dateFormat,
-                                    // )}
-                                    // value={`${releaseDate}`}
+                                    value={moment(
+                                        releaseDate
+                                            ? `${releaseDate}`
+                                            : "20/11/2022",
+                                        dateFormat,
+                                    )}
                                     disabled={isDisabled}
                                 />
                             </Form.Item>
@@ -275,23 +270,6 @@ export default function View() {
                         >
                             {buttonName}
                         </Button>
-                        {/* <Button
-                            style={{ width: "80px", marginLeft: 20 }}
-                            type="primary"
-                            htmlType="submit"
-                            onClick={() => {
-                                if (buttonName === "Edit") {
-                                    setButtonName("Save");
-                                    setIsDisabled(false);
-                                } else {
-                                    setButtonName("Edit");
-                                    setIsDisabled(true);
-                                }
-                            }}
-                            size="large"
-                        >
-                            {buttonName}
-                        </Button> */}
                         <Button
                             style={{ width: "80px", marginLeft: 20 }}
                             type="primary"

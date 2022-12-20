@@ -29,7 +29,7 @@ function Signup() {
 
     const handleSubmission = () => {
         if (!values.name || !values.email || !values.pass) {
-            setErrorMsg("Fill all fields");
+            setErrorMsg("Vui lòng điền đủ thông tin!!!");
             return;
         }
         setErrorMsg("");
@@ -56,7 +56,7 @@ function Signup() {
             })
             .catch((err) => {
                 setSubmitButtonDisabled(false);
-                setErrorMsg(err.message);
+                setErrorMsg("Tài khoản đẫ tồn tại!!!");
             });
     };
 

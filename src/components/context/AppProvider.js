@@ -17,6 +17,7 @@ import { db } from "../firebase/conflig";
 import { deleteDocument } from "../firebase/services";
 import { AuthContext } from "./AuthProvider";
 import Highlighter from "react-highlight-words";
+import { deleteObject, getStorage, ref } from "firebase/storage";
 
 export const AppContext = createContext();
 export default function AppProvider({ children }) {
@@ -29,15 +30,25 @@ export default function AppProvider({ children }) {
     const [searchedColumn, setSearchedColumn] = useState("");
     const searchInput = useRef(null);
 
+    const storage = getStorage();
+
     // Modal Handle Delete Book
     const handleDelete = (record) => {
+        const desertRef = ref(storage, `images/${record.imageName}`);
         Modal.confirm({
             title: "Bạn có chắc chắn muốn xóa!!!",
             okText: "Yes",
             okType: "danger",
             onOk: () => {
                 deleteDocument(record.id, "books");
-                getBooks();
+                // getBooks();
+                deleteObject(desertRef)
+                    .then(() => {
+                        // File deleted successfully
+                    })
+                    .catch((error) => {
+                        console.log(error);
+                    });
             },
         });
     };

@@ -39,7 +39,7 @@ function Login() {
             })
             .catch((err) => {
                 setSubmitButtonDisabled(false);
-                setErrorMsg(err.message);
+                setErrorMsg("Sai mật khẩu hoặc tài khoản!!!");
             });
     };
     return (
