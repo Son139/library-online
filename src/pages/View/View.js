@@ -13,7 +13,7 @@ import TextArea from "antd/lib/input/TextArea";
 import { doc, getDoc } from "firebase/firestore";
 import React, { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { AppContext } from "../../components/Context/AppProvider";
+import { AppContext } from "../../components/context/AppProvider";
 import { db } from "../../components/firebase/conflig";
 import { updateDocument } from "../../components/firebase/services";
 
@@ -39,6 +39,8 @@ export default function View() {
     const [image, setImage] = useState(null);
     const [url, setUrl] = useState(null);
     const [imageName, setImageName] = useState(null);
+    const [price, setPrice] = useState(null);
+    const [quanlity, setQuanlity] = useState(null);
 
     const { books } = useContext(AppContext);
 
@@ -79,6 +81,7 @@ export default function View() {
         }
     };
 
+
     const handleSubmit = async () => {
         const newBook = {
             title,
@@ -89,6 +92,7 @@ export default function View() {
             releaseDate,
             url,
             imageName,
+            price
         };
 
         const checkBook = books.filter((book) => {
@@ -100,7 +104,8 @@ export default function View() {
                 book.category === newBook.category.trim() &&
                 book.releaseDate === newBook.releaseDate.trim() &&
                 book.url === newBook.url &&
-                book.imageName === newBook.imageName
+                book.imageName === newBook.imageName &&
+                book.price === newBook.price
             );
         });
         if (
@@ -130,6 +135,8 @@ export default function View() {
         setPage(docSnap.data().page);
         setCategory(docSnap.data().category);
         setUrl(docSnap.data().url);
+        setPrice(docSnap.data().price);
+        setQuanlity(docSnap.data().quanlity);
     };
 
     useEffect(() => {
@@ -245,6 +252,24 @@ export default function View() {
                                     type="number"
                                     onChange={(e) => setPage(e.target.value)}
                                     value={`${page}`}
+                                    disabled={isDisabled}
+                                />
+                            </Form.Item>
+                            <Form.Item label="Giá: ">
+                                <Input
+                                    type="number"
+                                    onChange={(e) => setPrice(e.target.value)}
+                                    value={`${price}`}
+                                    disabled={isDisabled}
+                                />
+                            </Form.Item>
+                        </Col>
+                        <Col span={12}>
+                            <Form.Item label="Số lượng: ">
+                                <Input
+                                    type="quanlity"
+                                    onChange={(e) => setQuanlity(e.target.value)}
+                                    value={`${quanlity}`}
                                     disabled={isDisabled}
                                 />
                             </Form.Item>

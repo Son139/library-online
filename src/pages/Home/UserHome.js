@@ -1,69 +1,70 @@
-import { Layout, Menu, Row, Table } from "antd";
+import { Card, Image, Layout, List, Menu, Rate, Row, Typography } from "antd";
 import { Content, Header } from "antd/lib/layout/layout";
 import { signOut } from "firebase/auth";
-import React, { createElement, useContext, useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { AuthContext } from "../../components/Context/AuthProvider";
+import React, {useContext, useEffect, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { AuthContext } from "../../components/context/AuthProvider";
 import { auth } from "../../components/firebase/conflig";
 
 import classNames from "classnames/bind";
 import styles from "./Home.module.sass";
 
-import { MenuFoldOutlined, MenuUnfoldOutlined } from "@ant-design/icons";
-import { AppContext } from "../../components/Context/AppProvider";
-import Sider from "antd/lib/layout/Sider";
-import SiderApp from "../../components/Sider/Sider";
+import { AppContext } from "../../components/context/AppProvider";
+import AppSider from "../../components/Header/Header";
+import { getDocument, updateDocument } from "../../components/firebase/services";
+import { AppCart } from "../../components/AppCart/AppCart";
+import { AddToCartButton } from "./components";
 
 const cx = classNames.bind(styles);
 function UserHome() {
+    const [cart, setCart] = useState([]);
+    const [items, setItems] = useState();
     const navigate = useNavigate();
-    const { books, columns } = useContext(AppContext);
+    const { books } = useContext(AppContext);
     const {
-        user: { displayName },
-        itemMenu,
+        user: { uid, displayName },
     } = useContext(AuthContext);
-    const [collapsed, setCollapsed] = useState(false);
-    // const [isDisabled, setIsDisabled] = useState(true);
+    const param = useParams();
 
-    const handleClickMenu = ({ key }) => {
-        if (key === "/signout") {
-            handleLogOut();
-            setTimeout(() => {
-                window.location.reload();
-            }, 500);
-        } else {
-            navigate(key);
-        }
-    };
 
     const handleLogOut = () => {
         signOut(auth);
     };
-    // useEffect(() => {
-    //     if (displayName) setIsDisabled(false);
-    // }, [displayName]);
+    const fetchData = async () => {
+        const cart = await getDocument(uid, "carts");
+        return cart.data().books;
+    }
+    const onClick = (e) => {
+        navigate(`/listbooks/${e.key}`);
+        // setCurrent(e.key);
+      };
+    useEffect(()=>{
+        fetchData().then(books=>{setCart(books)})
+        param?.category ? setItems(books.filter(b => b.category === param.category)) : setItems(books);
+    },[books, param, uid])
+
+    const addToCart = async (book) => {
+        if (uid !== null) {
+            const cart = await getDocument(uid, "carts");
+            let books = cart.data().books;
+            let indexBook = books.findIndex((b) => b.id === book.id);
+            if (indexBook >= 0) {
+                books[indexBook].quantity = books[indexBook].quantity + 1;
+            } else {
+                books.push({id: book.id, quantity: 1});
+            }
+            updateDocument(uid, {books: books}, "carts");
+            setCart(books);
+            
+        } else {
+            console.log("uid is null");
+        }
+    }
 
     return (
-        <Layout>
+        <Layout className={styles.layoutStyle}>
             <Row>
-                <Sider
-                    trigger={null}
-                    collapsible
-                    collapsed={collapsed}
-                    style={{ display: "fixed" }}
-                >
-                    <div className={cx("logo")} />
-                    <Menu
-                        onClick={handleClickMenu}
-                        inlineCollapsed={collapsed}
-                        theme="dark"
-                        mode="inline"
-                        defaultSelectedKeys={"/" || [window.location.pathname]}
-                        items={itemMenu}
-                    />
-                    {/* <SiderApp inlineCollapsed={collapsed} items={itemMenu} /> */}
-                </Sider>
-
+                <AppSider />
                 <Layout className={cx("site-layout")}>
                     <Header
                         className={cx("site-layout-background")}
@@ -73,41 +74,101 @@ function UserHome() {
                             justifyContent: "space-between",
                         }}
                     >
-                        {createElement(
-                            collapsed ? MenuUnfoldOutlined : MenuFoldOutlined,
-                            {
-                                className: cx("trigger"),
-                                onClick: () => setCollapsed(!collapsed),
-                            },
-                        )}
-                        <h2>THƯ VIỆN SÁCH ONLINE</h2>
-                        <h2 style={{ paddingRight: "24px" }}>
-                            {displayName ? (
-                                `Xin chào - ${displayName}`
-                            ) : (
-                                <Link to="/login">Đăng Nhập</Link>
-                            )}
+                        <div style={{ display: "flex" }}>
+                        
+                        <h2 style={{ paddingLeft: "24px" }}>
+                            THƯ VIỆN SÁCH ONLINE
                         </h2>
+                        <Menu
+                            mode="horizontal"
+                            items={[
+                                {
+                                    label:"Thể loại",
+                                    key: "categories",
+                                    children:[
+                                        {
+                                            label: "Hài hước",
+                                            key: "Hài hước"
+                                        },
+                                        {
+                                            label: "Trinh thám",
+                                            key: "Trinh thám"
+                                        },
+                                        {
+                                            label: "Kì bí",
+                                            key: "Kì bí"
+                                        },
+                                        {
+                                            label: "Viễn tưởng",
+                                            key: "Viễn tưởng"
+                                        }
+                                    ]
+                                }
+                            ]}
+                            onClick={onClick}>
+                        </Menu>
+                        </div>
+                        <div style={{display: "flex", alignItems: "center"}}>
+                          <AppCart uid={uid} cart={cart} setCart={setCart}/>
+
+                          <h2 style={{ paddingRight: "24px" }}>
+                              {displayName ? (
+                                  `Xin chào - ${displayName}`
+                              ) : (
+                                  <Link to="/login">Đăng Nhập</Link>
+                              )}
+                          </h2>
+                        </div>
                     </Header>
                     <Content
                         className={cx("site-layout-background")}
                         style={{
                             margin: "24px 24px 24px 24px",
                             padding: 24,
-                            height: "100vh",
+                            minHeight: "100vh",
                         }}
                     >
-                        <Table
-                            pagination={{ pageSize: 8 }}
-                            dataSource={books}
-                            bordered
-                            columns={columns}
-                        ></Table>
-                    </Content>
+                        <List 
+                        grid={{column:3}}
+                        renderItem={(book, index) => {
+                            return <Card className="itemCard"
+                                    onClick={(e)=> navigate(`/listbooks/book/${book.id}`)}
+                                    title={book.title} 
+                                    key={index} 
+                                    cover={<Image className="itemCardImage" height="150px" src={book.url}/>}
+                                    actions={[
+                                        <Rate allowHalf disabled value={book.rating}/>,
+                                        <AddToCartButton item={book} addToCart={addToCart}/>
+                                    ]}
+                                    >
+                                    
+                                        <Card.Meta 
+                                        title={
+                                            <Typography.Paragraph>
+                                              Giá: {book.price}₫
+                                            </Typography.Paragraph>
+                                          }
+                                        description={<Typography.Paragraph ellipsis={{row:2, expandable:true, symbol:'more'}}>{book.description}</Typography.Paragraph>}>
+
+                                        </Card.Meta>
+                                    </Card>
+                        }} 
+                        dataSource={items}
+                        pagination={{
+                            onChange: (page) => {
+                              console.log(page);
+                            },
+                            pageSize: 6,
+                          }}
+                          >
+
+                        </List>
+                        </Content>
                 </Layout>
             </Row>
         </Layout>
     );
 }
+
 
 export default UserHome;
