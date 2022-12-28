@@ -3,14 +3,14 @@ import { Content, Header } from "antd/lib/layout/layout";
 import { signOut } from "firebase/auth";
 import React, { createElement, useContext, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { AuthContext } from "../../components/Context/AuthProvider";
+import { AuthContext } from "../../components/context/AuthProvider";
 import { auth } from "../../components/firebase/conflig";
 
 import classNames from "classnames/bind";
 import styles from "./Home.module.sass";
 
-import { AppContext } from "../../components/Context/AppProvider";
-import AppHeader from "../../components/Header/Header";
+import { AppContext } from "../../components/context/AppProvider";
+import AppSider from "../../components/Header/Header";
 
 const cx = classNames.bind(styles);
 function Home() {
@@ -33,7 +33,7 @@ function Home() {
     return (
         <Layout>
             <Row>
-                <AppHeader />
+                <AppSider />
                 <Layout className={cx("site-layout")}>
                     <Header
                         className={cx("site-layout-background")}

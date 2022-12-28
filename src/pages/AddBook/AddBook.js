@@ -18,7 +18,7 @@ import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { storage } from "../../components/firebase/conflig";
 import moment from "moment";
 import { Footer } from "antd/es/layout/layout";
-import { AppContext } from "../../components/Context/AppProvider";
+import { AppContext } from "../../components/context/AppProvider";
 
 export default function AddBook() {
     const dateFormat = "DD/MM/YYYY";
@@ -36,6 +36,10 @@ export default function AddBook() {
     const [url, setUrl] = useState(null);
     const [imageName, setImageName] = useState(null);
     const [sizeImage, setSizeImage] = useState(0);
+    const [rating, setRating] = useState(0.0);
+    const [price, setPrice] = useState(0.0);
+    const [stock, setStock] = useState(0);
+    const [comments, setComments] = useState([]);
 
     const { books } = useContext(AppContext);
 
@@ -87,6 +91,10 @@ export default function AddBook() {
             category,
             url,
             imageName,
+            rating,
+            price,
+            comments,
+            stock
         };
 
         const checkBook = books.find((book) => {
@@ -233,6 +241,28 @@ export default function AddBook() {
                                 <Input
                                     type="number"
                                     onChange={(e) => setPage(e.target.value)}
+                                />
+                            </Form.Item>
+                            <Form.Item
+                                hasFeedback
+                                name="price"
+                                label="Giá: "
+                            >
+                                <Input
+                                    type="number"
+                                    onChange={(e) => setPrice(e.target.value)}
+                                />
+                            </Form.Item>
+                        </Col>
+                        <Col span={12}>
+                            <Form.Item
+                                hasFeedback
+                                name="stock"
+                                label="Số lượng: "
+                            >
+                                <Input
+                                    type="number"
+                                    onChange={(e) => setStock(e.target.value)}
                                 />
                             </Form.Item>
                         </Col>

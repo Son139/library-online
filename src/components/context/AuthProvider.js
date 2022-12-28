@@ -23,22 +23,22 @@ export default function AuthProvider({ children }) {
                 const { displayName, email, uid } = user;
                 setUser({ displayName, email, uid });
                 items.push(
-                    {
+                    email === "admin123@gmail.com" ? {
                         key: "/user",
                         icon: <UserOutlined />,
                         label: `${displayName}`,
-                    },
-                    {
+                    } : "",
+                    email === "admin123@gmail.com" ? {
                         key: "/",
                         icon: <BookOutlined />,
                         label: "Danh mục Sách",
-                    },
-                    {
+                    } : "",
+                    email === "admin123@gmail.com" ? {
                         key: "/addbook",
                         icon: <PlusCircleOutlined />,
                         label: "Thêm Sách",
-                    },
-                    {
+                    } : "",
+                    email === "admin123@gmail.com" ? "" : {
                         key: "/listbooks",
                         icon: <HomeOutlined />,
                         label: "Home User",
@@ -50,7 +50,6 @@ export default function AuthProvider({ children }) {
                     },
                 );
                 setItemMenu(items);
-                console.log("22");
                 // navigate("/");
                 // return;
             }

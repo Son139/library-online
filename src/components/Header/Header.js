@@ -2,11 +2,11 @@ import { Menu } from "antd";
 import Sider from "antd/lib/layout/Sider";
 import { signOut } from "firebase/auth";
 import React, { useContext } from "react";
-import { useNavigate } from "react-router-dom";
-import { AuthContext } from "../Context/AuthProvider";
+import { useNavigate, useParams } from "react-router-dom";
+import { AuthContext } from "../context/AuthProvider";
 import { auth } from "../firebase/conflig";
 
-export default function AppHeader() {
+export default function AppSider() {
     const navigate = useNavigate();
 
     const { itemMenu } = useContext(AuthContext);
@@ -37,7 +37,7 @@ export default function AppHeader() {
                 onClick={handleClickMenu}
                 theme="dark"
                 mode="inline"
-                defaultSelectedKeys={"/" || [window.location.pathname]}
+                defaultSelectedKeys={"/" + window.location.pathname.split('/')[1] }
                 items={itemMenu}
             />
             {/* <SiderApp inlineCollapsed={collapsed} items={itemMenu} /> */}

@@ -6,9 +6,11 @@ import {
 
 import styles from "./Login.module.sass";
 import { auth } from "../../components/firebase/conflig";
-import InputControl from "../../components/InputControl/InputControl";
+import InputControl from "../../components/inputControl/InputControl";
 import classNames from "classnames/bind";
 import { faEnvelope, faKey } from "@fortawesome/free-solid-svg-icons";
+import { Input } from "antd";
+import { EyeInvisibleOutlined, EyeTwoTone } from "@ant-design/icons";
 
 const cx = classNames.bind(styles);
 
@@ -35,7 +37,7 @@ function Login() {
                 setSubmitButtonDisabled(false);
                 // check new user
 
-                navigate("/");
+                values.email === 'admin123@gmail.com' ? navigate("/").then(()=>window.location.reload()) : navigate("/listbooks");
             })
             .catch((err) => {
                 setSubmitButtonDisabled(false);

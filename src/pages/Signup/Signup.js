@@ -6,13 +6,13 @@ import {
     updateProfile,
 } from "firebase/auth";
 
-import InputControl from "../../components/InputControl/InputControl";
+import InputControl from "../../components/inputControl/InputControl";
 import { auth } from "../../components/firebase/conflig";
 
 import styles from "./Signup.module.sass";
 import classNames from "classnames/bind";
 import { faEnvelope, faKey, faUser } from "@fortawesome/free-solid-svg-icons";
-import { addDocument } from "../../components/firebase/services";
+import { addDocument, addDocumentWithID } from "../../components/firebase/services";
 
 const cx = classNames.bind(styles);
 
@@ -37,6 +37,8 @@ function Signup() {
         setSubmitButtonDisabled(true);
         createUserWithEmailAndPassword(auth, values.email, values.pass)
             .then(async (res) => {
+
+                console.log(res);
                 setSubmitButtonDisabled(false);
                 const user = res.user;
                 await updateProfile(user, {
@@ -50,11 +52,15 @@ function Signup() {
                         email: res.user.email,
                         uid: res.user.uid,
                     });
+                    addDocumentWithID("carts", res.user.uid, {
+                        books: [],
+                    });
                 }
 
                 navigate("/login");
             })
             .catch((err) => {
+                console.log(err);
                 setSubmitButtonDisabled(false);
                 setErrorMsg("Tài khoản đẫ tồn tại!!!");
             });
